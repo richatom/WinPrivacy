@@ -11,20 +11,14 @@ import winreg
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTimer
 # Talon components
-from components.browser_select_screen import BrowserSelectScreen
 from components.defender_check import DefenderCheck
-from components.raven_app_screen import RavenAppScreen
-from components.install_screen import InstallScreen
 from components import debloat_windows
-from components import raven_software_install
-from components import browser_install
 from components import windows_check
-from components import apply_background
 
 
 
 """ Establish the version of Talon """
-TALON_VERSION = "1.2.0"
+TALON_VERSION = "1.0.0"
 
 
 
@@ -122,61 +116,9 @@ def main():
         logging.info("System check passed.")
     except Exception as e:
         logging.error(f"System check failed: {e}")
-    try:
-        logging.info("Displaying browser selection screen...")
-        browser_select_screen = BrowserSelectScreen()
-        browser_select_screen.show()
-        while selected_browser is None:
-            app.processEvents()
-            if browser_select_screen.selected_browser is not None:
-                selected_browser = browser_select_screen.selected_browser
-        logging.info(f"Browser Selected: {selected_browser}")
-        browser_select_screen.close()
-    except Exception as e:
-        logging.error(f"Error during browser selection: {e}")
-    install_raven = None
-    try:
-        logging.info("Displaying Raven app installation screen...")
-        raven_app_screen = RavenAppScreen()
-        raven_app_screen.show()
-        while install_raven is None:
-            app.processEvents()
-            if raven_app_screen.selected_option is not None:
-                install_raven = raven_app_screen.selected_option
-        logging.info(f"Raven App Installation Decision: {'Yes' if install_raven else 'No'}")
-        raven_app_screen.close()
-    except Exception as e:
-        logging.error(f"Error during Raven app installation decision: {e}")
-    install_screen = None
-    if not developer_mode:
-        try:
-            logging.info("Displaying installation screen...")
-            install_screen = InstallScreen()
-            install_screen.show()
-        except Exception as e:
-            logging.error(f"Error during installation screen setup: {e}")
 
     """ Run the installation process """
     def perform_installation():
-        try:
-            if install_raven:
-                logging.info("Installing Raven software...")
-                raven_software_install.main()
-                logging.info("Raven software installed.")
-        except Exception as e:
-            logging.error(f"Error during Raven software installation: {e}")
-        try:
-            logging.info(f"Installing {selected_browser} browser...")
-            browser_install.install_browser(selected_browser)
-            logging.info(f"{selected_browser} browser installation complete.")
-        except Exception as e:
-            logging.error(f"Error during browser installation: {e}")
-        try:
-            logging.info("Applying background settings...")
-            apply_background.main()
-            logging.info("Background settings applied successfully.")
-        except Exception as e:
-            logging.error(f"Error applying background settings: {e}")
         try:
             logging.info("Applying Windows registry modifications and customizations...")
             debloat_windows.apply_registry_changes()
@@ -184,9 +126,7 @@ def main():
         except Exception as e:
             logging.error(f"Error applying registry changes: {e}")
         logging.info("All installations and configurations completed.")
-        if install_raven:
-            install_screen.close()
-        logging.info("Installation complete. Restarting system...")
+        logging.info("Installation complete. Please restart your system")
         debloat_windows.finalize_installation()
 
     try:

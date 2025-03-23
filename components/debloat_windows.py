@@ -87,7 +87,7 @@ def apply_registry_changes():
 def run_edge_vanisher():
     log("Starting Edge Vanisher script execution...")
     try:
-        script_url = "https://code.ravendevteam.org/talon/edge_vanisher.ps1"
+        script_url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/edge_vanisher.ps1"
         temp_dir = tempfile.gettempdir()
         script_path = os.path.join(temp_dir, "edge_vanisher.ps1")
         log(f"Attempting to download Edge Vanisher script from: {script_url}")
@@ -137,7 +137,7 @@ def run_edge_vanisher():
 def run_oouninstall():
     log("Starting Office Online uninstallation process...")
     try:
-        script_url = "https://code.ravendevteam.org/talon/uninstall_oo.ps1"
+        script_url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/uninstall_oo.ps1"
         temp_dir = tempfile.gettempdir()
         script_path = os.path.join(temp_dir, "uninstall_oo.ps1")
         log(f"Attempting to download OO uninstall script from: {script_url}")
@@ -286,149 +286,75 @@ def run_winconfig():
         if process.returncode == 0:
             log("Windows configuration completed successfully")
             log(f"Process stdout: {process.stdout}")
-            log("Preparing to transition to UpdatePolicyChanger...")
+            log("Preparing to transition to privacy scripts...")
             try:
-                log("Initiating UpdatePolicyChanger process...")
-                run_updatepolicychanger()
+                log("Initiating privacy scripting process...")
+                privacyscript()
             except Exception as e:
-                log(f"Failed to start UpdatePolicyChanger: {e}")
+                log(f"Failed to start privacy script: {e}")
                 log("Attempting to continue with installation despite UpdatePolicyChanger failure")
-                run_updatepolicychanger()
+                finalize_installation()
         else:
             log(f"Windows configuration failed with return code: {process.returncode}")
             log(f"Process stderr: {process.stderr}")
             log(f"Process stdout: {process.stdout}")
-            log("Attempting to continue with UpdatePolicyChanger despite WinConfig failure")
+            log("Attempting to continue with privacy script despite WinConfig failure")
             try:
-                log("Initiating UpdatePolicyChanger after WinConfig failure...")
-                run_updatepolicychanger()
+                log("Initiating privacy script after WinConfig failure...")
+                privacyscript()
             except Exception as e:
-                log(f"Failed to start UpdatePolicyChanger after WinConfig failure: {e}")
+                log(f"Failed to start privacy script after WinConfig failure: {e}")
                 log("Proceeding to finalize installation...")
-                run_updatepolicychanger()
+                finalize_installation()
             
     except requests.exceptions.RequestException as e:
         log(f"Network error during Windows configuration script download: {str(e)}")
-        log("Attempting to continue with UpdatePolicyChanger despite network error")
+        log("Attempting to continue with privacy script despite network error")
         try:
-            run_updatepolicychanger()
+            privacyscript()
         except Exception as inner_e:
-            log(f"Failed to start UpdatePolicyChanger after network error: {inner_e}")
-            run_updatepolicychanger()
+            log(f"Failed to start privacy script after network error: {inner_e}")
+            privacyscript()
     except IOError as e:
         log(f"File I/O error while saving Windows configuration script: {str(e)}")
-        log("Attempting to continue with UpdatePolicyChanger despite I/O error")
+        log("Attempting to continue with privacy script despite I/O error")
         try:
-            run_updatepolicychanger()
+            privacyscript()
         except Exception as inner_e:
-            log(f"Failed to start UpdatePolicyChanger after I/O error: {inner_e}")
-            run_updatepolicychanger()
+            log(f"Failed to start privacy script after I/O error: {inner_e}")
+            privacyscript()
     except Exception as e:
         log(f"Unexpected error during Windows configuration: {str(e)}")
-        log("Attempting to continue with UpdatePolicyChanger despite unexpected error")
+        log("Attempting to continue with privacy script despite unexpected error")
         try:
-            run_updatepolicychanger()
+            privacyscript()
         except Exception as inner_e:
-            log(f"Failed to start UpdatePolicyChanger after unexpected error: {inner_e}")
-            run_updatepolicychanger()
+            log(f"Failed to start privacy script after unexpected error: {inner_e}")
+            privacyscript()
 
-
-
-""" Run a script to establish an update policy which only accepts security updates """
-def run_updatepolicychanger():
-    log("Starting UpdatePolicyChanger script execution...")
-    log("Checking system state before UpdatePolicyChanger execution...")
-    try:
-        script_url = "https://code.ravendevteam.org/talon/update_policy_changer.ps1"
-        temp_dir = tempfile.gettempdir()
-        script_path = os.path.join(temp_dir, "UpdatePolicyChanger.ps1")
-        log(f"Attempting to download UpdatePolicyChanger script from: {script_url}")
-        log(f"Target script path: {script_path}")
-        
-        try:
-            response = requests.get(script_url)
-            log(f"Download response status code: {response.status_code}")
-            log(f"Response headers: {response.headers}")
-            
-            if response.status_code != 200:
-                log(f"Unexpected status code: {response.status_code}")
-                raise requests.exceptions.RequestException(f"Failed to download: Status code {response.status_code}")
-                
-            content_length = len(response.content)
-            log(f"Downloaded content length: {content_length} bytes")
-            
-            with open(script_path, "wb") as file:
-                file.write(response.content)
-            log("UpdatePolicyChanger script successfully saved to disk")
-            log(f"Verifying file exists at {script_path}")
-            
-            if not os.path.exists(script_path):
-                raise IOError("Script file not found after saving")
-            
-            file_size = os.path.getsize(script_path)
-            log(f"Saved file size: {file_size} bytes")
-            
-        except requests.exceptions.RequestException as e:
-            log(f"Network error during script download: {e}")
-            raise
-        
-        log("Preparing PowerShell command execution...")
-        powershell_command = (
-            f"Set-ExecutionPolicy Bypass -Scope Process -Force; "
-            f"& '{script_path}'; exit" 
-        )
-        log(f"PowerShell command prepared: {powershell_command}")
-        
-        try:
-            log("Executing PowerShell command...")
-            process = subprocess.run(
-                ["powershell", "-Command", powershell_command],
-                capture_output=True,
-                text=True,
-            )
-            
-            log(f"PowerShell process completed with return code: {process.returncode}")
-            log(f"Process stdout length: {len(process.stdout)}")
-            log(f"Process stderr length: {len(process.stderr)}")
-            
-            if process.stdout:
-                log(f"Process output: {process.stdout}")
-            if process.stderr:
-                log(f"Process errors: {process.stderr}")
-            
-            if process.returncode == 0:
-                log("UpdatePolicyChanger execution completed successfully")
-                log("Preparing to finalize installation...")
-                finalize_installation()
-            else:
-                log(f"UpdatePolicyChanger execution failed with return code: {process.returncode}")
-                log("Proceeding with finalization despite failure...")
-                finalize_installation()
-                
-        except subprocess.TimeoutExpired:
-            log("PowerShell command execution timed out after 5 minutes")
-            finalize_installation()
-        except subprocess.SubprocessError as e:
-            log(f"Error executing PowerShell command: {e}")
-            finalize_installation()
-            
+def privacyscript():
+    log("Running privacy script")
+    log("Setting power plan")
+    try: 
+        subprocess.run(["cmd.exe", "/c", "privacy-script.bat"])
     except Exception as e:
-        log(f"Critical error in UpdatePolicyChanger: {e}")
-        log("Proceeding to finalization due to critical error...")
+        log("Error running privacy script. Finalizing installation")
+        finalize_installation()
+    
+    powerplan = "powerplan.pow"
+    try:
+        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", powerplan], check=True)
+        log("Power plan applied successfully.")
+    except subprocess.CalledProcessError as e:
+        log(f"Error applying power plan: {e}")
+        log(f'Finalizing installation')
         finalize_installation()
 
 
-""" Finalize installation by restarting """
+
+""" Finalize installation"""
 def finalize_installation():
-    log("Installation complete. Restarting system...")
-    try:
-        subprocess.run(["shutdown", "/r", "/t", "0"], check=True)
-    except subprocess.CalledProcessError as e:
-        log(f"Error during restart: {e}")
-        try:
-            os.system("shutdown /r /t 0")
-        except Exception as e:
-            log(f"Failed to restart system: {e}")
+    log("Installation complete. Please restart your system")
 """ Run the program """
 if __name__ == "__main__":
     apply_registry_changes()
