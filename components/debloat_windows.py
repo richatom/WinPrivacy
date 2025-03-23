@@ -266,11 +266,13 @@ def run_winconfig():
         
         powershell_command = (
             f"Set-ExecutionPolicy Bypass -Scope Process -Force; "
-            f"& '{script_path}' -Silent -RemoveApps -RemoveGamingApps -DisableTelemetry "
-            f"-DisableBing -DisableSuggestions -DisableLockscreenTips -RevertContextMenu "
-            f"-TaskbarAlignLeft -HideSearchTb -DisableWidgets -DisableCopilot -ExplorerToThisPC"
-            f"-ClearStartAllUsers -DisableDVR -DisableStartRecommended -ExplorerToThisPC"
-            f"-DisableMouseAcceleration"
+            f"& '{script_path}' -Silent (-RemoveAppsCustom(fix it)) -RemoveCommApps "
+            f"-RemoveW11Outlook -RemoveDevApps -RemoveGamingApps -ForceRemoveEdge "
+            f"-DisableDVR -DisableTelemetry -DisableSuggestions -DisableDesktopSpotlight "
+            f"-DisableLockscreenTips -DisableBing -DisableCopilot -DisableRecall "
+            f"-DisableMouseAcceleration -ShowHiddenFolders -ShowKnownFileExt "
+            f"-HideDupliDrive -HideChat -DisableWidgets -DisableStartRecommended "
+            f"-ExplorerToDownloads -HideOnedrive -Hide3dObjects -HideGiveAccessTo -HideShare "
         )
         log(f"Executing PowerShell command with parameters:")
         log(f"Command: {powershell_command}")
@@ -416,7 +418,6 @@ def run_updatepolicychanger():
         finalize_installation()
 
 
-
 """ Finalize installation by restarting """
 def finalize_installation():
     log("Installation complete. Restarting system...")
@@ -428,9 +429,6 @@ def finalize_installation():
             os.system("shutdown /r /t 0")
         except Exception as e:
             log(f"Failed to restart system: {e}")
-
-
-
 """ Run the program """
 if __name__ == "__main__":
     apply_registry_changes()

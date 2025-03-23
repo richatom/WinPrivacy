@@ -1,27 +1,125 @@
-﻿{
-    "WPFTweaks":  [
-                      "WPFTweaksWifi",
-                      "WPFTweaksHome",
-                      "WPFTweaksRemoveEdge",
-                      "WPFTweaksRemoveHomeGallery",
-                      "WPFTweaksDisableLMS1",
-                      "WPFTweaksIPv46",
-                      "WPFTweaksDeBloat",
-                      "WPFTweaksConsumerFeatures",
-                      "WPFTweaksTele",
-                      "WPFTweaksDisplay",
-                      "WPFTweaksAH",
-                      "WPFTweaksRightClickMenu",
-                      "WPFTweaksRemoveCopilot",
-                      "WPFTweaksLoc",
-                      "WPFTweaksRemoveOnedrive",
-                      "WPFTweaksServices",
-                      "WPFTweaksDeleteTempFiles",
-                      "WPFTweaksRecallOff",
-                      "WPFTweaksDisableBGapps"
-                  ],
-    "WPFFeature":  [
-                       "WPFFeaturesSandbox",
-                       "WPFFeatureshyperv"
-                   ]
+{
+  "WPFTweaks": [
+    "WPFTweaksRemoveHomeGallery",
+    "WPFTweaksHome",
+    "WPFTweaksStorage",
+    "WPFTweaksLaptopHibernation",
+    "WPFTweaksRightClickMenu",
+    "WPFTweaksDisableLMS1",
+    "WPFTweaksEdgeDebloat",
+    "WPFTweaksRemoveEdge",
+    "WPFTweaksDiskCleanup",
+    "WPFTweaksBlockAdobeNet",
+    "WPFTweaksRazerBlock",
+    "WPFTweaksHiber",
+    "WPFTweaksPowershell7Tele",
+    "WPFTweaksDebloatAdobe",
+    "WPFTweaksPowershell7",
+    "WPFTweaksRecallOff",
+    "WPFTweaksDisableNotifications",
+    "WPFTweaksLoc",
+    "WPFTweaksDisableBGapps",
+    "WPFTweaksDeleteTempFiles",
+    "WPFTweaksServices",
+    "WPFTweaksRemoveOnedrive",
+    "WPFTweaksEndTaskOnTaskbar",
+    "WPFTweaksTele",
+    "WPFTweaksDisplay",
+    "WPFTweaksDVR",
+    "WPFTweaksConsumerFeatures",
+    "WPFTweaksRemoveCopilot"
+  ],
+  "WPFInstall": [
+    "WPFInstallpython3",
+    "WPFInstallwaterfox",
+    "WPFInstallpowershell",
+    "WPFInstalltelegram",
+    "WPFInstallvscodium",
+    "WPFInstallgit",
+    "WPFInstallgithubdesktop",
+    "WPFInstallspotify",
+    "WPFInstallthunderbird",
+    "WPFInstalldiscord",
+    "WPFInstallffmpeg",
+    "WPFInstallbulkcrapuninstaller",
+    "WPFInstall7zip",
+    "WPFInstallpyenvwin",
+    "WPFInstallnotepadplus",
+    "WPFInstalleartrumpet",
+    "WPFInstallvlc"
+  ],
+  "Install": [
+    {
+      "winget": "Python.Python.3.12",
+      "choco": "python"
+    },
+    {
+      "winget": "Waterfox.Waterfox",
+      "choco": "waterfox"
+    },
+    {
+      "winget": "Microsoft.PowerShell",
+      "choco": "powershell-core"
+    },
+    {
+      "winget": "Telegram.TelegramDesktop",
+      "choco": "telegram"
+    },
+    {
+      "winget": "VSCodium.VSCodium",
+      "choco": "vscodium"
+    },
+    {
+      "winget": "Git.Git",
+      "choco": "git"
+    },
+    {
+      "winget": "GitHub.GitHubDesktop",
+      "choco": "git;github-desktop"
+    },
+    {
+      "winget": "Spotify.Spotify",
+      "choco": "spotify"
+    },
+    {
+      "winget": "Mozilla.Thunderbird",
+      "choco": "thunderbird"
+    },
+    {
+      "winget": "Discord.Discord",
+      "choco": "discord"
+    },
+    {
+      "winget": "Gyan.FFmpeg",
+      "choco": "ffmpeg-full"
+    },
+    {
+      "winget": "Klocman.BulkCrapUninstaller",
+      "choco": "bulk-crap-uninstaller"
+    },
+    {
+      "winget": "7zip.7zip",
+      "choco": "7zip"
+    },
+    {
+      "winget": "na",
+      "choco": "pyenv-win"
+    },
+    {
+      "winget": "Notepad++.Notepad++",
+      "choco": "notepadplusplus"
+    },
+    {
+      "winget": "File-New-Project.EarTrumpet",
+      "choco": "eartrumpet"
+    },
+    {
+      "winget": "VideoLAN.VLC",
+      "choco": "vlc"
+    }
+  ],
+  "WPFFeature": [
+    "WPFFeaturesdotnet",
+    "WPFFeatureshyperv"
+  ]
 }
