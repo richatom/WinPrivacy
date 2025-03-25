@@ -119,17 +119,13 @@ def run_edge_vanisher():
         else:
             log(f"Edge Vanisher execution failed with return code: {process.returncode}")
             log(f"Process error: {process.stderr}")
-            run_oouninstall()
             
     except requests.exceptions.RequestException as e:
         log(f"Network error during Edge Vanisher script download: {str(e)}")
-        run_oouninstall()
     except IOError as e:
         log(f"File I/O error while saving Edge Vanisher script: {str(e)}")
-        run_oouninstall()
     except Exception as e:
         log(f"Unexpected error during Edge Vanisher execution: {str(e)}")
-        run_oouninstall()
 
 
 
@@ -167,11 +163,9 @@ def run_oouninstall():
             log(f"Office Online uninstallation failed with return code: {process.returncode}")
             log(f"Process stderr: {process.stderr}")
             log(f"Process stdout: {process.stdout}")
-            run_tweaks()
             
     except Exception as e:
         log(f"Unexpected error during OO uninstallation: {str(e)}")
-        run_tweaks()
 
 
 
@@ -292,45 +286,20 @@ def run_winconfig():
                 privacyscript()
             except Exception as e:
                 log(f"Failed to start privacy script: {e}")
-                log("Attempting to continue with installation despite UpdatePolicyChanger failure")
-                finalize_installation()
         else:
             log(f"Windows configuration failed with return code: {process.returncode}")
             log(f"Process stderr: {process.stderr}")
             log(f"Process stdout: {process.stdout}")
-            log("Attempting to continue with privacy script despite WinConfig failure")
-            try:
-                log("Initiating privacy script after WinConfig failure...")
-                privacyscript()
-            except Exception as e:
-                log(f"Failed to start privacy script after WinConfig failure: {e}")
-                log("Proceeding to finalize installation...")
-                finalize_installation()
             
     except requests.exceptions.RequestException as e:
         log(f"Network error during Windows configuration script download: {str(e)}")
-        log("Attempting to continue with privacy script despite network error")
-        try:
-            privacyscript()
-        except Exception as inner_e:
-            log(f"Failed to start privacy script after network error: {inner_e}")
-            privacyscript()
+
     except IOError as e:
         log(f"File I/O error while saving Windows configuration script: {str(e)}")
-        log("Attempting to continue with privacy script despite I/O error")
-        try:
-            privacyscript()
-        except Exception as inner_e:
-            log(f"Failed to start privacy script after I/O error: {inner_e}")
-            privacyscript()
+
     except Exception as e:
         log(f"Unexpected error during Windows configuration: {str(e)}")
-        log("Attempting to continue with privacy script despite unexpected error")
-        try:
-            privacyscript()
-        except Exception as inner_e:
-            log(f"Failed to start privacy script after unexpected error: {inner_e}")
-            privacyscript()
+
 
 def privacyscript():
     log("Running privacy script")
