@@ -169,7 +169,7 @@ def run_oouninstall():
 
 
 
-""" Run ChrisTitusTech's WinUtil to debloat the system (Thanks Chris, you're a legend!) """
+""" Run ChrisTitusTech's WinUtil to debloat the system"""
 def run_tweaks():
     logging.basicConfig(
         level=logging.INFO,
