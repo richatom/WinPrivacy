@@ -260,7 +260,7 @@ def run_winconfig():
         
         powershell_command = (
             f"Set-ExecutionPolicy Bypass -Scope Process -Force; "
-            f"& '{script_path}' -Silent (-RemoveAppsCustom(fix it)) -RemoveCommApps "
+            f"& '{script_path}' -Silent -RemoveAppsCustom -RemoveCommApps "
             f"-RemoveW11Outlook -RemoveDevApps -RemoveGamingApps -ForceRemoveEdge "
             f"-DisableDVR -DisableTelemetry -DisableSuggestions -DisableDesktopSpotlight "
             f"-DisableLockscreenTips -DisableBing -DisableCopilot -DisableRecall "
@@ -300,24 +300,41 @@ def run_winconfig():
     except Exception as e:
         log(f"Unexpected error during Windows configuration: {str(e)}")
 
-
-def privacyscript():
-    log("Running privacy script")
-    log("Setting power plan")
-    try: 
-        subprocess.run(["cmd.exe", "/c", "privacy-script.bat"])
-    except Exception as e:
-        log("Error running privacy script. Finalizing installation")
-        finalize_installation()
-    
-    powerplan = "powerplan.pow"
+def run_privacy_script():
+    log("Starting privacy script execution...")
     try:
-        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", powerplan], check=True)
-        log("Power plan applied successfully.")
-    except subprocess.CalledProcessError as e:
-        log(f"Error applying power plan: {e}")
-        log(f'Finalizing installation')
-        finalize_installation()
+        script_url = "https://raw.githubusercontent.com/your-repo/your-branch/privacy-script.bat"
+        temp_dir = tempfile.gettempdir()
+        script_path = os.path.join(temp_dir, "privacy-script.bat")
+        
+        log(f"Attempting to download privacy script from: {script_url}")
+        log(f"Target script path: {script_path}")
+        
+        response = requests.get(script_url)
+        log(f"Download response status code: {response.status_code}")
+        
+        with open(script_path, "wb") as file:
+            file.write(response.content)
+        log("Privacy script successfully saved to disk")
+        
+        log(f"Executing script: {script_path}")
+        process = subprocess.run(
+            ["cmd.exe", "/c", script_path],
+            capture_output=True,
+            text=True
+        )
+        
+        if process.returncode == 0:
+            log("Privacy script executed successfully")
+            log(f"Process stdout: {process.stdout}")
+            log(f'Doing the final changes')
+            finalize_installation()
+        else:
+            log(f"Privacy script execution failed with return code: {process.returncode}")
+            log(f"Process stderr: {process.stderr}")
+            log(f"Process stdout: {process.stdout}")
+    except Exception as e:
+        log(f"An error occurred: {str(e)}")
 
 
 
