@@ -303,7 +303,7 @@ def run_winconfig():
 def run_privacy_script():
     log("Starting privacy script execution...")
     try:
-        script_url = "https://raw.githubusercontent.com/your-repo/your-branch/privacy-script.bat"
+        script_url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/privacy-script.bat"
         temp_dir = tempfile.gettempdir()
         script_path = os.path.join(temp_dir, "privacy-script.bat")
         
