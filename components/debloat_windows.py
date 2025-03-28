@@ -335,7 +335,7 @@ def run_privacy_script():
             log(f"Process stdout: {process.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
-def run_powerplan()
+def run_powerplan():
     log('Starting powerplan setup')
     try:
         script_url ='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/powerplan.pow'
