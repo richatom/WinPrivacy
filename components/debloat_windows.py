@@ -283,7 +283,7 @@ def run_winconfig():
             log("Preparing to transition to privacy scripts...")
             try:
                 log("Initiating privacy scripting process...")
-                privacyscript()
+                run_privacy_script()
             except Exception as e:
                 log(f"Failed to start privacy script: {e}")
         else:
