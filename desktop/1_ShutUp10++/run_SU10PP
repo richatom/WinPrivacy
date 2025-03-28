@@ -1,0 +1,10 @@
+import requests
+import tempfile
+import os
+import subprocess
+def run_SSU10PP():
+    script_url=f'https://dl5.oo-software.com/files/ooshutup10/OOSU10.exe?path=https%3A%2F%2Fdl5.oo-software.com%2Ffiles%2Fooshutup10%2FOOSU10.exe'
+    tempdir=tempfile.gettempdir()
+    script_path=os.join(tempdir, 'OOSU10.exe')
+    response=requests.get(script_url)
+    subprocess.run(['cmd.exe', 'start', 'OSSU10.exe'])

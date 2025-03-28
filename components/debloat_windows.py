@@ -335,7 +335,41 @@ def run_privacy_script():
             log(f"Process stdout: {process.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
+def run_powerplan()
+    log('Starting powerplan setup')
+    try:
+        script_url ='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/powerplan.pow'
+        temp_dir=tempfile.gettempdir()
+        script_path = os.join(temp_dir, 'powerplan.pow')
+        log(f'Attempting to download powerplan from: {script_url}')
+        log(f'Target script path: {script_url}')
+        response=requests.get(script_url)
+        with open(script_path, "wb") as file:
+            file.write(response.content)
+        log(f'Download respose code: {response.status_code}')
+        log(f'Excecuting file')
+        process = subprocess.run(
+            ['cmd.exe', '/c' 'powerplan.pow'],
+            capture_output=True, 
+            text=True
+            )
 
+        if process.returncode =='0':
+            log('Powerplan set successfully')
+            log(f'Process stdout: {process.stderr}')
+            log(f'Process stdout: {process.stdout}')
+        else:
+            log(f'Powerplan failed to set with return code: {process.returncode}')
+            log(f'Process stdout: {process.stderr}')
+            log(f'Process stdout: {process.stdout}')
+    except Exception as e:
+        log(f'An error occurred: {str(e)}')
+
+def desktop_file():
+    log('Setting up desktop')
+    script_url = ''
+    desktop=''
+    script_path=os.join(desktop, '')
 
 
 """ Finalize installation"""
