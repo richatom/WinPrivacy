@@ -1,8 +1,10 @@
 @echo off
 setlocal
 
-set "MEDIAFIRE_URL=https://www.mediafire.com/folder/p5v9r9a1gxa9y/desktop"
+:: Define the MediaFire URL
+set "MEDIAFIRE_URL=https://www.mediafire.com/folder/kfctdnyf0b8h5/desktop"
 
+:: Get the user's desktop path
 for /f "tokens=2 delims=:" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v Desktop ^| findstr Desktop') do set "DESKTOP_PATH=%%a"
 set "DESKTOP_PATH=%DESKTOP_PATH:\=\\%"
 

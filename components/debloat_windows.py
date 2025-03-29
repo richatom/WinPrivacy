@@ -281,11 +281,7 @@ def run_winconfig():
             log("Windows configuration completed successfully")
             log(f"Process stdout: {process.stdout}")
             log("Preparing to transition to privacy scripts...")
-            try:
-                log("Initiating privacy scripting process...")
-                run_privacy_script()
-            except Exception as e:
-                log(f"Failed to start privacy script: {e}")
+            run_privacy_script()
         else:
             log(f"Windows configuration failed with return code: {process.returncode}")
             log(f"Process stderr: {process.stderr}")
@@ -328,8 +324,10 @@ def run_privacy_script():
             log("Privacy script executed successfully")
             log(f"Process stdout: {process.stdout}")
             log(f'Doing the final changes')
-            finalize_installation()
+            log("Initiating powerplan process...")
+            run_powerplan()
         else:
+
             log(f"Privacy script execution failed with return code: {process.returncode}")
             log(f"Process stderr: {process.stderr}")
             log(f"Process stdout: {process.stdout}")
@@ -358,6 +356,9 @@ def run_powerplan():
             log('Powerplan set successfully')
             log(f'Process stdout: {process.stderr}')
             log(f'Process stdout: {process.stdout}')
+            log("Initiating desktop changes process...") 
+            desktopsetting()
+
         else:
             log(f'Powerplan failed to set with return code: {process.returncode}')
             log(f'Process stdout: {process.stderr}')
@@ -365,11 +366,53 @@ def run_powerplan():
     except Exception as e:
         log(f'An error occurred: {str(e)}')
 
-def desktop_file():
-    log('Setting up desktop')
-    script_url = ''
-    desktop=''
-    script_path=os.join(desktop, '')
+def desktopsetting():
+    log('Downloading desktop tweaks')
+    try:
+        url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktop.bat"
+        temp_dir = tempfile.gettempdir()
+        bat_path = os.path.join(temp_dir, "desktop.bat")
+        log(f'Attempting to download powerplan from: {url}')
+        log(f'Target script path: {url}')
+        response = requests.get(url)
+        with open(bat_path, "wb") as file:
+            file.write(response.content)
+        log(f'Download respose code: {response.status_code}')
+        log(f'Excecuting file')
+
+        process = subprocess.run(["cmd", "/c", bat_path], shell=True)
+        if process.returncode =='0':
+            log('Desktop is finished')
+            log(f'Process stdout: {process.stderr}')
+            log(f'Process stdout: {process.stdout}')
+            waterfoxdownload()
+        else:
+            log(f'Desktop script failed to set with return code: {process.returncode}')
+            log(f'Process stdout: {process.stderr}')
+            log(f'Process stdout: {process.stdout}')
+    except Exception as e:
+        log(f'An error occurred: {str(e)}')
+def waterfoxdownload():
+    try:
+        waterfox_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/waterfox.ps1'
+        temp_dir= tempfile.gettempdir()
+        waterfox_path=os.path.join(temp_dir, 'waterfox.ps1')
+        log(f'Attempting to download waterfox from: {waterfox_url}')
+        response=requests.get(waterfox_url)
+        with open(waterfox_path, 'wb') as file:
+            file.write(response.content)
+        process = subprocess.run(['cmd.exe', '/C', 'waterfox.ps1'], shell=True)
+        if process.returncode =='0':
+            log('Waterfox is downloaded')
+            log(f'Process stdout: {process.stderr}')
+            log(f'Process stdout: {process.stdout}')
+            finalize_installation()
+        else:
+            log(f'waterfox installation failed to set with return code: {process.returncode}')
+            log(f'Process stdout: {process.stderr}')
+            log(f'Process stdout: {process.stdout}')
+    except Exception as e:
+        log(f'An error occurred: {str(e)}')
 
 
 """ Finalize installation"""
