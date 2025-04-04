@@ -10,6 +10,8 @@ import shutil
 import time
 import logging
 import json
+import urllib
+import urllib3
 
 
 
@@ -280,8 +282,8 @@ def run_winconfig():
         if process.returncode == 0:
             log("Windows configuration completed successfully")
             log(f"Process stdout: {process.stdout}")
-            log("Preparing to transition to privacy scripts...")
-            run_privacy_script()
+            log("Preparing to transition to powerplan changes...")
+            run_powerplan()
         else:
             log(f"Windows configuration failed with return code: {process.returncode}")
             log(f"Process stderr: {process.stderr}")
@@ -295,6 +297,66 @@ def run_winconfig():
 
     except Exception as e:
         log(f"Unexpected error during Windows configuration: {str(e)}")
+
+def run_powerplan():
+    log('Starting powerplan setup')
+    url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/powerplan.pow"
+    temp_dir = tempfile.gettempdir()
+    local_path = os.path.join(temp_dir, "powerplan.pow")
+
+    try:
+        log(f"Downloading power plan from {url}...")
+        urllib.request.urlretrieve(url, local_path)
+        log(f"Downloaded to {local_path}")
+
+        log("Importing power plan...")
+        import_result = subprocess.run(["powercfg", "/import", local_path], capture_output=True, text=True, shell=True)
+        if import_result.returncode != 0:
+            log(f"Failed to import power plan: {import_result.stderr.strip()}")
+
+        log("Fetching list of power plans...")
+        list_result = subprocess.run(["powercfg", "/list"], capture_output=True, text=True, shell=True)
+        if list_result.returncode != 0:
+            log(f"Failed to list power plans: {list_result.stderr.strip()}")
+
+        lines = list_result.stdout.splitlines()
+        for line in lines:
+            if "powerplan" in line.lower():  # Adjust this if needed
+                guid = line.strip().split(":")[1].split("(")[0].strip()
+                log(f"Setting active power plan: {guid}")
+                subprocess.run(["powercfg", "/setactive", guid], shell=True)
+                log("Power plan activated.")
+                waterfoxdownload()
+    except Exception as e:
+        log(f"An error occurred: {str(e)}")
+
+def waterfoxdownload():
+    url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/waterfox.ps1"
+    temp_dir = tempfile.gettempdir()
+    script_path = os.path.join(temp_dir, "waterfox.ps1")
+
+    try:
+        log(f"Downloading PowerShell script from: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        with open(script_path, 'w', encoding='utf-8') as file:
+            file.write(response.text)
+        log(f"Script saved to: {script_path}")
+
+        log("Running PowerShell script...")
+        result = subprocess.run(
+            ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", script_path],
+            capture_output=True, text=True
+        )
+
+        # Output results
+        log("Output:")
+        log(result.stdout)
+        log("Errors:")
+        log(result.stderr)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 def run_privacy_script():
     log("Starting privacy script execution...")
@@ -316,16 +378,15 @@ def run_privacy_script():
         log(f"Executing script: {script_path}")
         process = subprocess.run(
             ["cmd.exe", "/c", script_path],
-            capture_output=True,
-            text=True
+            capture_output=True
         )
         
         if process.returncode == 0:
-            log("Privacy script executed successfully")
+            log("Privacy script executed succe  ssfully")
             log(f"Process stdout: {process.stdout}")
             log(f'Doing the final changes')
             log("Initiating powerplan process...")
-            run_powerplan()
+            finalize_installation()
         else:
 
             log(f"Privacy script execution failed with return code: {process.returncode}")
@@ -333,86 +394,7 @@ def run_privacy_script():
             log(f"Process stdout: {process.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
-def run_powerplan():
-    log('Starting powerplan setup')
-    try:
-        script_url ='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/powerplan.pow'
-        temp_dir=tempfile.gettempdir()
-        script_path = os.join(temp_dir, 'powerplan.pow')
-        log(f'Attempting to download powerplan from: {script_url}')
-        log(f'Target script path: {script_url}')
-        response=requests.get(script_url)
-        with open(script_path, "wb") as file:
-            file.write(response.content)
-        log(f'Download respose code: {response.status_code}')
-        log(f'Excecuting file')
-        process = subprocess.run(
-            ['cmd.exe', '/c' 'powerplan.pow'],
-            capture_output=True, 
-            text=True
-            )
 
-        if process.returncode =='0':
-            log('Powerplan set successfully')
-            log(f'Process stdout: {process.stderr}')
-            log(f'Process stdout: {process.stdout}')
-            log("Initiating desktop changes process...") 
-            desktopsetting()
-
-        else:
-            log(f'Powerplan failed to set with return code: {process.returncode}')
-            log(f'Process stdout: {process.stderr}')
-            log(f'Process stdout: {process.stdout}')
-    except Exception as e:
-        log(f'An error occurred: {str(e)}')
-
-def desktopsetting():
-    log('Downloading desktop tweaks')
-    try:
-        url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktop.bat"
-        temp_dir = tempfile.gettempdir()
-        bat_path = os.path.join(temp_dir, "desktop.bat")
-        log(f'Attempting to download powerplan from: {url}')
-        log(f'Target script path: {url}')
-        response = requests.get(url)
-        with open(bat_path, "wb") as file:
-            file.write(response.content)
-        log(f'Download respose code: {response.status_code}')
-        log(f'Excecuting file')
-
-        process = subprocess.run(["cmd", "/c", bat_path], shell=True)
-        if process.returncode =='0':
-            log('Desktop is finished')
-            log(f'Process stdout: {process.stderr}')
-            log(f'Process stdout: {process.stdout}')
-            waterfoxdownload()
-        else:
-            log(f'Desktop script failed to set with return code: {process.returncode}')
-            log(f'Process stdout: {process.stderr}')
-            log(f'Process stdout: {process.stdout}')
-    except Exception as e:
-        log(f'An error occurred: {str(e)}')
-def waterfoxdownload():
-    try:
-        waterfox_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/waterfox.ps1'
-        temp_dir= tempfile.gettempdir()
-        waterfox_path=os.path.join(temp_dir, 'waterfox.ps1')
-        log(f'Attempting to download waterfox from: {waterfox_url}')
-        response=requests.get(waterfox_url)
-        with open(waterfox_path, 'wb') as file:
-            file.write(response.content)
-        process = subprocess.run(['cmd.exe', '/C', 'waterfox.ps1'], shell=True)
-        if process.returncode =='0':
-            log('Waterfox is downloaded')
-            log(f'Process stdout: {process.stderr}')
-            log(f'Process stdout: {process.stdout}')
-            finalize_installation()
-        else:
-            log(f'waterfox installation failed to set with return code: {process.returncode}')
-            log(f'Process stdout: {process.stderr}')
-            log(f'Process stdout: {process.stdout}')
-    except Exception as e:
-        log(f'An error occurred: {str(e)}')
 
 
 """ Finalize installation"""
