@@ -262,7 +262,7 @@ def run_winconfig():
         
         powershell_command = (
             f"Set-ExecutionPolicy Bypass -Scope Process -Force; "
-            f"& '{script_path}' -Silent -RemoveAppsCustom -RemoveCommApps "
+            f"& '{script_path}' -Silent -RemoveApps -RemoveCommApps "
             f"-RemoveW11Outlook -RemoveDevApps -RemoveGamingApps -ForceRemoveEdge "
             f"-DisableDVR -DisableTelemetry -DisableSuggestions -DisableDesktopSpotlight "
             f"-DisableLockscreenTips -DisableBing -DisableCopilot -DisableRecall "
@@ -379,14 +379,15 @@ def run_privacy_script():
         log(f"Executing script: {script_path}")
         process = subprocess.run(
             ["cmd.exe", "/c", script_path],
-            capture_output=True
+            capture_output=True,
+            text=True
         )
         
         if process.returncode == 0:
             log("Privacy script executed succe  ssfully")
             log(f"Process stdout: {process.stdout}")
             log(f'Doing the final changes')
-            log("Initiating powerplan process...")
+            log("Finalizing installation...")
             finalize_installation()
         else:
 
