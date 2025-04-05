@@ -12,9 +12,8 @@ import logging
 import json
 import urllib
 import urllib3
-
-
-
+import urllib.request
+import time
 """ Set up the log file """
 LOG_FILE = "talon.txt"
 logging.basicConfig(
@@ -299,47 +298,77 @@ def waterfoxdownload():
         run_privacy_script()
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        log(f"An error occurred: {e}")
 
 def run_privacy_script():
-    log("Starting privacy script execution...")
-    try:
-        script_url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/privacy-script.bat"
+    try: 
+        # URL of the batch script
+        batch_url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/privacy-script.bat"
+
+        # Temp directory and path
         temp_dir = tempfile.gettempdir()
-        script_path = os.path.join(temp_dir, "privacy-script.bat")
-        
-        log(f"Attempting to download privacy script from: {script_url}")
-        log(f"Target script path: {script_path}")
-        
-        response = requests.get(script_url)
-        log(f"Download response status code: {response.status_code}")
-        
-        with open(script_path, "wb") as file:
-            file.write(response.content)
-        log("Privacy script successfully saved to disk")
-        
-        log(f"Executing script: {script_path}")
-        process = subprocess.run(
-            ["cmd.exe", "/c", script_path],
-            capture_output=True,
+        batch_path = os.path.join(temp_dir, "privacy-script.bat")
+
+        # Download the batch file
+        urllib.request.urlretrieve(batch_url, batch_path)
+        log(f'Downloading batchfile from: {batch_url}')
+
+        # Run the batch file and capture output
+        log(f'Running batch file')
+        process = subprocess.Popen(
+            ["cmd.exe", "/c", batch_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True
         )
-        
+
+        # Process each line
+        for line in process.stdout:
+            clean_line = line.strip()
+            log(clean_line)
+
+            if "Tweaks are finished" in clean_line:
+                log("Detected completion message, closing window...")
+                # Close the console window (if running inside one)
+                hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+                if hwnd != 0:
+                    ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
+                time.sleep(3)
+                desktopFolder()
+                break
+    except Exception as e:
+        log(f"An error occurred: {e}")
+
+
+    
+def desktopFolder():
+    script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktopUtilites.ps1'
+    temp_dir=tempfile.gettempdir
+    script_path=os.path.join(temp_dir, 'desktopUtilities.ps1')
+    try:
+        log(f'Attempting to get folders from: {script_url}')
+        log(f'Target script path: {script_url}')
+        response=requests.get(script_url)
+        log(f'Download response status code: {response.status_code}')
+        with open(script_path, 'w', encoding='utf-8') as file:
+            file.write(response.text)
+        log('Desktop utilities succesfully saved to disk')
+        log(f'Excecuting desktop utilites: {script_path}')
+        result = subprocess.run(
+            ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", script_path],
+            capture_output=True, text=True)
+
         if process.returncode == 0:
-            log("Privacy script executed succe  ssfully")
+            log('Script executed sucessfully') 
             log(f"Process stdout: {process.stdout}")
             log(f'Doing the final changes')
             log("Finalizing installation...")
-            desktopFolder()
         else:
-
-            log(f"Privacy script execution failed with return code: {process.returncode}")
+            log(f"Desktop Utilites script execution failed with return code: {process.returncode}")
             log(f"Process stderr: {process.stderr}")
             log(f"Process stdout: {process.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
-def desktopFolder():
-    script_url=''
 
 """ Finalize installation"""
 def finalize_installation():
