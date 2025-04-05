@@ -1,38 +1,46 @@
 {
-  "Install": [],
-  "WPFFeature": [
-    "WPFFeatureshyperv",
-    "WPFFeaturesdotnet"
+  "Install": [
+    {
+      "winget": "Waterfox.Waterfox",
+      "choco": "waterfox"
+    }
   ],
-  "WPFInstall": [],
+  "WPFFeature": [
+    "WPFFeaturesdotnet",
+    "WPFFeatureshyperv"
+  ],
   "WPFTweaks": [
-    "WPFTweaksRecallOff",
     "WPFTweaksDeBloat",
-    "WPFTweaksRemoveOnedrive",
-    "WPFTweaksRazerBlock",
-    "WPFTweaksDisableNotifications",
-    "WPFTweaksPowershell7",
-    "WPFTweaksDisableLMS1",
-    "WPFTweaksBlockAdobeNet",
-    "WPFTweaksDVR",
-    "WPFTweaksLaptopHibernation",
-    "WPFTweaksDisplay",
-    "WPFTweaksRightClickMenu",
-    "WPFTweaksServices",
-    "WPFTweaksDisableBGapps",
-    "WPFTweaksEdgeDebloat",
-    "WPFTweaksDebloatAdobe",
-    "WPFTweaksPowershell7Tele",
+    "WPFTweaksAH",
     "WPFTweaksTele",
-    "WPFTweaksLoc",
-    "WPFTweaksEndTaskOnTaskbar",
-    "WPFTweaksRemoveCopilot",
-    "WPFTweaksRemoveHomeGallery",
-    "WPFTweaksHome",
-    "WPFTweaksHiber",
+    "WPFTweaksDisableLMS1",
     "WPFTweaksStorage",
+    "WPFTweaksRemoveCopilot",
     "WPFTweaksDeleteTempFiles",
+    "WPFTweaksDisableNotifications",
+    "WPFTweaksPowershell7Tele",
+    "WPFTweaksHiber",
+    "WPFTweaksPowershell7",
+    "WPFTweaksDVR",
+    "WPFTweaksDisableBGapps",
+    "WPFTweaksLoc",
+    "WPFTweaksRemoveOnedrive",
+    "WPFTweaksRemoveHomeGallery",
+    "WPFTweaksEdgeDebloat",
+    "WPFTweaksConsumerFeatures",
+    "WPFTweaksServices",
+    "WPFTweaksHome",
+    "WPFTweaksDebloatAdobe",
+    "WPFTweaksRecallOff",
+    "WPFTweaksBlockAdobeNet",
+    "WPFTweaksEndTaskOnTaskbar",
+    "WPFTweaksRazerBlock",
+    "WPFTweaksRightClickMenu",
     "WPFTweaksRemoveEdge",
-    "WPFTweaksConsumerFeatures"
+    "WPFTweaksDisplay",
+    "WPFTweaksLaptopHibernation"
+  ],
+  "WPFInstall": [
+    "WPFInstallwaterfox"
   ]
 }

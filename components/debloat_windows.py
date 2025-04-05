@@ -354,6 +354,7 @@ def waterfoxdownload():
         log(result.stdout)
         log("Errors:")
         log(result.stderr)
+        run_privacy_script()
 
     except Exception as e:
         print(f"An error occurred: {e}")
