@@ -227,76 +227,18 @@ def run_tweaks():
                         creationflags=subprocess.CREATE_NO_WINDOW
                     )
 
-                    run_winconfig()
+                    run_powerplan()
                     os._exit(0)
             
             if process.poll() is not None:
-                run_winconfig()
+                run_powerplan()
                 os._exit(1)
 
         return False
 
     except Exception as e:
         log(f"Error: {str(e)}")
-        run_winconfig()
         os._exit(1)
-
-
-
-""" Run Raphi's Win11Debloat script to further debloat the system (Thanks Raphire!) """
-def run_winconfig():
-    log("Starting Windows configuration process...")
-    try:
-        script_url = "https://win11debloat.raphi.re/"
-        temp_dir = tempfile.gettempdir()
-        script_path = os.path.join(temp_dir, "Win11Debloat.ps1")
-        log(f"Attempting to download Windows configuration script from: {script_url}")
-        log(f"Target script path: {script_path}")
-        
-        response = requests.get(script_url)
-        log(f"Download response status code: {response.status_code}")
-        
-        with open(script_path, "wb") as file:
-            file.write(response.content)
-        log("Windows configuration script successfully saved to disk")
-        
-        powershell_command = (
-            f"Set-ExecutionPolicy Bypass -Scope Process -Force; "
-            f"& '{script_path}' -Silent -RemoveApps -RemoveCommApps "
-            f"-RemoveW11Outlook -RemoveDevApps -RemoveGamingApps -ForceRemoveEdge "
-            f"-DisableDVR -DisableTelemetry -DisableSuggestions -DisableDesktopSpotlight "
-            f"-DisableLockscreenTips -DisableBing -DisableCopilot -DisableRecall "
-            f"-DisableMouseAcceleration -ShowHiddenFolders -ShowKnownFileExt "
-            f"-HideDupliDrive -HideChat -DisableWidgets -DisableStartRecommended "
-            f"-ExplorerToDownloads -HideOnedrive -Hide3dObjects -HideGiveAccessTo -HideShare "
-        )
-        log(f"Executing PowerShell command with parameters:")
-        log(f"Command: {powershell_command}")
-        
-        process = subprocess.run(
-            ["powershell", "-Command", powershell_command],
-            capture_output=True,
-            text=True
-        )
-        
-        if process.returncode == 0:
-            log("Windows configuration completed successfully")
-            log(f"Process stdout: {process.stdout}")
-            log("Preparing to transition to powerplan changes...")
-            run_powerplan()
-        else:
-            log(f"Windows configuration failed with return code: {process.returncode}")
-            log(f"Process stderr: {process.stderr}")
-            log(f"Process stdout: {process.stdout}")
-            
-    except requests.exceptions.RequestException as e:
-        log(f"Network error during Windows configuration script download: {str(e)}")
-
-    except IOError as e:
-        log(f"File I/O error while saving Windows configuration script: {str(e)}")
-
-    except Exception as e:
-        log(f"Unexpected error during Windows configuration: {str(e)}")
 
 def run_powerplan():
     log('Starting powerplan setup')
@@ -388,7 +330,7 @@ def run_privacy_script():
             log(f"Process stdout: {process.stdout}")
             log(f'Doing the final changes')
             log("Finalizing installation...")
-            finalize_installation()
+            desktopFolder()
         else:
 
             log(f"Privacy script execution failed with return code: {process.returncode}")
@@ -396,8 +338,8 @@ def run_privacy_script():
             log(f"Process stdout: {process.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
-
-
+def desktopFolder():
+    script_url=''
 
 """ Finalize installation"""
 def finalize_installation():
