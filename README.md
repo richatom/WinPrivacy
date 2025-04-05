@@ -1,11 +1,5 @@
 # Windows Script for privacy 
 
-[x]	-> Debloat Talon, fix some stuff for personal use
-[x]	-> Update Raphire debloater (https://github.com/Raphire/Win11Debloat)
-[x]	-> Update Chris titus tool (winutil)
-[maybe]	-> implement Privacy.sexy scrips
-[ ] -> Actually FIX the program so it works 
-[ ]	-> Create custom folders on desktop containing bluetooth fixes and more
-[ ]	-> Create a app installer, installs apps and then runs the app debloat script from privacy sexy
-[ ]	-> Fix privacy.sexy scripts
-[ ]	-> Maybe add some atlasos code
+Easy to use. 
+Based on Talon (thank k0)
+Uses code from Raphires debloat tool, winutil by chris titus, privacy.sexy
