@@ -319,7 +319,8 @@ def run_privacy_script():
             ["cmd.exe", "/c", batch_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True
+            text=True,
+            shell=True,
         )
 
         # Process each line
