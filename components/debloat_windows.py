@@ -312,26 +312,24 @@ def run_privacy_script():
 
         with open(script_path, "wb") as f:
             f.write(response.content)
-        process=subprocess.Popen(['cmd.exe', '/C', script_path], 
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        process=subprocess.run(['cmd.exe', 'start', '/C', script_path], 
+        capture_output=True,
         text=True,
         )
-        while True:
-            output = process.stdout.readline()
-            if output == output.strip():
-                log(f'PS Output: {output}')
-                if 'Tweaks are Finished' in output:
-                    log(f'Privacy Script are finished: running desktop scripts')
-                    desktopFolder()
-            if process.poll() is not None:
-                desktopFolder()
+        if process.returncode == 0:
+            log("Privacy Script was successful")
+            log(f"Process stdout: {process.stdout}")
+            desktopFolder()
+        else:
+            log(f"Privacy Script failed with return code: {process.returncode}")
+            log(f"Process stderr: {process.stderr}")
+            log(f"Process stdout: {process.stdout}")
     except Exception as e:
         log(f'An error occurred: {e}')
     
 def desktopFolder():
     script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktopUtilites.ps1'
-    temp_dir=tempfile.gettempdir
+    temp_dir=tempfile.gettempdir()
     script_path=os.path.join(temp_dir, 'desktopUtilities.ps1')
     try:
         log(f'Attempting to get folders from: {script_url}')
@@ -346,20 +344,23 @@ def desktopFolder():
             ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", script_path],
             capture_output=True, text=True)
 
-        if process.returncode == 0:
-            log('Script executed sucessfully') 
-            log(f"Process stdout: {process.stdout}")
-            log(f'Doing the final changes')
-            log("Finalizing installation...")
+        if result.returncode == 0:
+            log('Script executed successfully')
+            log('Doing the final changes')
+            log(f"Process stdout: {result.stdout}")
+            log(f'finalizing installation')
+            finalize_installation()
         else:
-            log(f"Desktop Utilites script execution failed with return code: {process.returncode}")
-            log(f"Process stderr: {process.stderr}")
-            log(f"Process stdout: {process.stdout}")
+            log("Finalizing installation...")
+            log(f"Process stderr: {result.stderr}")
+            log(f"Desktop Utilities script execution failed with return code: {result.returncode}")
+            log(f"Process stdout: {result.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
-
 """ Finalize installation"""
+
 def finalize_installation():
+
     log("Installation complete. Please restart your system")
 """ Run the program """
 if __name__ == "__main__":
