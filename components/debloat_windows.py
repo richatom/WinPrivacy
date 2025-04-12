@@ -14,6 +14,7 @@ import urllib
 import urllib3
 import urllib.request
 import time
+
 """ Set up the log file """
 LOG_FILE = "talon.txt"
 logging.basicConfig(
@@ -28,7 +29,6 @@ logging.basicConfig(
 def log(message):
     logging.info(message)
     print(message)
-
 
 
 """ Utility function to check if the program is running as administrator """
@@ -301,46 +301,33 @@ def waterfoxdownload():
         log(f"An error occurred: {e}")
 
 def run_privacy_script():
-    try: 
-        # URL of the batch script
-        batch_url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/privacy-script.bat"
+    script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/privacy-script.bat'
+    tempdir=tempfile.gettempdir()
+    script_path=os.path.join(tempdir, 'privacy-script.bat')
+    try:
+        response=requests.get(script_url)
+        log(f'Getting privacy script from: {script_url}')
+        response.raise_for_status()
+        log(f'running privacy script')
 
-        # Temp directory and path
-        temp_dir = tempfile.gettempdir()
-        batch_path = os.path.join(temp_dir, "privacy-script.bat")
-
-        # Download the batch file
-        urllib.request.urlretrieve(batch_url, batch_path)
-        log(f'Downloading batchfile from: {batch_url}')
-
-        # Run the batch file and capture output
-        log(f'Running batch file')
-        process = subprocess.Popen(
-            ["cmd.exe", "/c", batch_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            shell=True,
+        with open(script_path, "wb") as f:
+            f.write(response.content)
+        process=subprocess.Popen(['cmd.exe', '/C', script_path], 
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
         )
-
-        # Process each line
-        for line in process.stdout:
-            clean_line = line.strip()
-            log(clean_line)
-
-            if "Tweaks are finished" in clean_line:
-                log("Detected completion message, closing window...")
-                # Close the console window (if running inside one)
-                hwnd = ctypes.windll.kernel32.GetConsoleWindow()
-                if hwnd != 0:
-                    ctypes.windll.user32.PostMessageW(hwnd, 0x0010, 0, 0)
-                time.sleep(3)
+        while True:
+            output = process.stdout.readline()
+            if output == output.strip():
+                log(f'PS Output: {output}')
+                if 'Tweaks are Finished' in output:
+                    log(f'Privacy Script are finished: running desktop scripts')
+                    desktopFolder()
+            if process.poll() is not None:
                 desktopFolder()
-                break
     except Exception as e:
-        log(f"An error occurred: {e}")
-
-
+        log(f'An error occurred: {e}')
     
 def desktopFolder():
     script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktopUtilites.ps1'

@@ -1,10 +1,4 @@
 {
-  "Install": [
-    {
-      "winget": "Waterfox.Waterfox",
-      "choco": "waterfox"
-    }
-  ],
   "WPFFeature": [
     "WPFFeaturesdotnet",
     "WPFFeatureshyperv"
@@ -39,8 +33,5 @@
     "WPFTweaksRemoveEdge",
     "WPFTweaksDisplay",
     "WPFTweaksLaptopHibernation"
-  ],
-  "WPFInstall": [
-    "WPFInstallwaterfox"
   ]
 }
