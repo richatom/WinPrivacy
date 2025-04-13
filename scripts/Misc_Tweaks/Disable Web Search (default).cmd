@@ -36,7 +36,5 @@ call "%windir%\AtlasModules\Scripts\settingsPages.cmd" /hide search-permissions 
 ) > nul 2>&1
 
 echo]
-echo Finished.
-echo Press any key to exit...
 pause > nul
 exit /b

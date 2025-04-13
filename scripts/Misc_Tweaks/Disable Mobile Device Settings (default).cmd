@@ -21,6 +21,5 @@ choice /c:yn /n /m "Would you like to disable Store auto-updates? [Y/N] "
 if %errorlevel% == 1 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsStore\WindowsUpdate" /v "AutoDownload" /t REG_DWORD /d "2" /f > nul
 if %errorlevel% == 2 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsStore\WindowsUpdate" /v "AutoDownload" /t REG_DWORD /d "4" /f > nul
 
-echo Finished.
 pause
 exit /b

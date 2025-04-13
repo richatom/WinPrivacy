@@ -20,7 +20,5 @@ reg add "HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot" /v "TurnOffWin
 start explorer.exe
 
 echo]
-echo Finished, changes are applied.
-echo Press any key to exit...
 pause > nul
 exit /b

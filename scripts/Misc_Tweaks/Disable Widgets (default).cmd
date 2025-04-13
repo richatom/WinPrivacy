@@ -21,8 +21,5 @@ echo Disabling News and Interests (called Widgets in Windows 11)...
     start explorer.exe
 ) > nul 2>&1
 
-echo]
-echo Finished, changes have been applied.
-echo Press any key to exit...
 pause > nul
 exit /b

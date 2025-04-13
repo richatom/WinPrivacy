@@ -18,6 +18,5 @@ powercfg /h off
 
 if "%~1" == "/silent" exit
 
-echo Finished, changes have been applied.
 pause
 exit /b

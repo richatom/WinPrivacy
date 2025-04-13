@@ -34,13 +34,5 @@ powercfg /setactive scheme_current
 
 if "%~1" == "/silent" exit /b
 
-choice /n /c:yn /m "Would you like to enable hibernation? [Y/N]"
-if %errorlevel%==1 (
-	start "Enabling Hibernation" "%windir%\AtlasDesktop\3. General Configuration\Hibernation\Enable Hibernation.cmd"
-) else (
-	start "Disabling Hibernation" "%windir%\AtlasDesktop\3. General Configuration\Hibernation\Disable Hibernation (default).cmd"
-)
-
-echo Finished, changes have been applied.
 pause
 exit /b

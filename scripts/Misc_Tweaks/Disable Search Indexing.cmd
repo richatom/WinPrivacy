@@ -29,6 +29,5 @@ echo]
 %indexConf% /stop
 
 echo]
-echo Finished.
 if "%~1" neq "/silent" pause
 exit /b

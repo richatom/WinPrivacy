@@ -20,6 +20,5 @@ for %%a in (
 )
 schtasks /change /tn "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" /disable > nul
 
-echo Finished, changes have been applied.
 pause
 exit /b

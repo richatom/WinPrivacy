@@ -36,6 +36,5 @@ for %%a in (
 
 if "%~1"=="/silent" exit /b
 
-echo Finished.
 pause
 exit /b
