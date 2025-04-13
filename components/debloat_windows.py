@@ -289,43 +289,12 @@ def waterfoxdownload():
             ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", script_path],
             capture_output=True, text=True
         )
-
-        # Output results
-        log("Output:")
-        log(result.stdout)
         log("Errors:")
         log(result.stderr)
-        run_privacy_script()
+        desktopFolder()
 
     except Exception as e:
         log(f"An error occurred: {e}")
-
-def run_privacy_script():
-    script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/uninstallers/privacy-script.bat'
-    tempdir=tempfile.gettempdir()
-    script_path=os.path.join(tempdir, 'privacy-script.bat')
-    try:
-        response=requests.get(script_url)
-        log(f'Getting privacy script from: {script_url}')
-        response.raise_for_status()
-        log(f'running privacy script')
-
-        with open(script_path, "wb") as f:
-            f.write(response.content)
-        process=subprocess.run(['cmd.exe', 'start', '/C', script_path], 
-        capture_output=True,
-        text=True,
-        )
-        if process.returncode == 0:
-            log("Privacy Script was successful")
-            log(f"Process stdout: {process.stdout}")
-            desktopFolder()
-        else:
-            log(f"Privacy Script failed with return code: {process.returncode}")
-            log(f"Process stderr: {process.stderr}")
-            log(f"Process stdout: {process.stdout}")
-    except Exception as e:
-        log(f'An error occurred: {e}')
     
 def desktopFolder():
     script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktopUtilites.ps1'
@@ -349,7 +318,7 @@ def desktopFolder():
             log('Doing the final changes')
             log(f"Process stdout: {result.stdout}")
             log(f'finalizing installation')
-            finalize_installation()
+            run_custom_scripts()
         else:
             log("Finalizing installation...")
             log(f"Process stderr: {result.stderr}")
@@ -357,7 +326,8 @@ def desktopFolder():
             log(f"Process stdout: {result.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
-""" Finalize installation"""
+def run_custom_scripts():
+    from components.custom_scripts import *
 
 def finalize_installation():
 
