@@ -240,62 +240,99 @@ def run_tweaks():
         os._exit(1)
 
 def run_powerplan():
-    log('Starting powerplan setup')
-    url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/powerplan.pow"
-    temp_dir = tempfile.gettempdir()
-    local_path = os.path.join(temp_dir, "powerplan.pow")
-
     try:
-        log(f"Downloading power plan from {url}...")
-        urllib.request.urlretrieve(url, local_path)
-        log(f"Downloaded to {local_path}")
-
-        log("Importing power plan...")
-        import_result = subprocess.run(["powercfg", "/import", local_path], capture_output=True, text=True, shell=True)
-        if import_result.returncode != 0:
-            log(f"Failed to import power plan: {import_result.stderr.strip()}")
-
-        log("Fetching list of power plans...")
-        list_result = subprocess.run(["powercfg", "/list"], capture_output=True, text=True, shell=True)
-        if list_result.returncode != 0:
-            log(f"Failed to list power plans: {list_result.stderr.strip()}")
-
-        lines = list_result.stdout.splitlines()
-        for line in lines:
-            if "powerplan" in line.lower():  # Adjust this if needed
-                guid = line.strip().split(":")[1].split("(")[0].strip()
-                log(f"Setting active power plan: {guid}")
-                subprocess.run(["powercfg", "/setactive", guid], shell=True)
-                log("Power plan activated.")
-                waterfoxdownload()
+        # Define the URL and the local path for the powerplan file
+        powerplan_url = 'https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/powerplan.pow'
+        temp_dir = tempfile.gettempdir()
+        powerplan_path = os.path.join(temp_dir, 'powerplan.pow')
+        
+        # Download the powerplan file
+        log(f"Downloading powerplan file from: {powerplan_url}")
+        response = requests.get(powerplan_url)
+        response.raise_for_status()
+        
+        with open(powerplan_path, 'wb') as file:
+            file.write(response.content)
+        
+        log(f"Powerplan file downloaded to: {powerplan_path}")
+        
+        # Apply the powerplan
+        log("Applying the powerplan...")
+        result = subprocess.run(
+            ["powercfg", "-import", powerplan_path],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            log("Powerplan applied successfully")
+            waterfoxdownload()
+        else:
+            log(f"Failed to apply powerplan with return code: {result.returncode}")
+            log(f"Process error: {result.stderr}")
+    
+    except requests.RequestException as e:
+        log(f"Error downloading powerplan file: {str(e)}")
+    except subprocess.CalledProcessError as e:
+        log(f"Error applying powerplan: {str(e)}")
     except Exception as e:
-        log(f"An error occurred: {str(e)}")
+        log(f"Unexpected error in run_powerplan: {str(e)}")
+
 
 def waterfoxdownload():
-    url = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/waterfox.ps1"
-    temp_dir = tempfile.gettempdir()
-    script_path = os.path.join(temp_dir, "waterfox.ps1")
-
     try:
-        log(f"Downloading PowerShell script from: {url}")
-        response = requests.get(url)
-        response.raise_for_status()
-        with open(script_path, 'w', encoding='utf-8') as file:
-            file.write(response.text)
-        log(f"Script saved to: {script_path}")
+        log("Installing Waterfox...")
+        
+        # Defien waterfox installation script
+        ps1_command = ['''
+Write-Output "Starting Waterfox installation via winget..."
 
-        log("Running PowerShell script...")
-        result = subprocess.run(
-            ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", script_path],
-            capture_output=True, text=True
-        )
-        log("Errors:")
-        log(result.stderr)
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    Write-Output "Winget is not available. Attempting to install..."
+
+    $ProgressPreference = 'SilentlyContinue'
+    Write-Output "Installing WinGet PowerShell module from PSGallery..."
+
+    Install-PackageProvider -Name NuGet -Force | Out-Null
+    Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery -AllowClobber | Out-Null
+
+    Write-Output "Using Repair-WinGetPackageManager cmdlet to bootstrap WinGet..."
+    Repair-WinGetPackageManager
+    Write-Output "WinGet installation complete."
+}
+
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    Write-Error "Winget installation failed or is still unavailable."
+    exit 1
+}
+
+Write-Output "Installing Waterfox via winget..."
+winget install --id Waterfox.Waterfox --source winget --accept-package-agreements --accept-source-agreements
+
+Write-Output "Waterfox installation completed."
+'''
+        ]
+        
+        # Execute waterfox installation script
+        for cmd in ps1_command:
+            try:
+                result = subprocess.run(["powershell.exe", "-Command", cmd], 
+                                      check=True, 
+                                      capture_output=True, 
+                                      text=True)
+                log(f"Successfully executed waterfox installation: {cmd}")
+            except subprocess.CalledProcessError as e:
+                log(f"Error executing waterfox installation: {cmd}: {str(e)}")
+            except Exception as e:
+                log(f"Unexpected error with waterfox installation: {cmd}: {str(e)}")
+        
+        log("Waterfox installation completed")
         desktopFolder()
-
+        
     except Exception as e:
-        log(f"An error occurred: {e}")
-    
+        log(f"Error in waterfox installation: {str(e)}")
+        desktopFolder()  # Continue with desktop folder even if waterfox installation fails
+
 def desktopFolder():
     script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktopUtilites.ps1'
     temp_dir=tempfile.gettempdir()
@@ -318,7 +355,7 @@ def desktopFolder():
             log('Doing the final changes')
             log(f"Process stdout: {result.stdout}")
             log(f'finalizing installation')
-            run_custom_scripts()
+            custom_scripts_tweaks()
         else:
             log("Finalizing installation...")
             log(f"Process stderr: {result.stderr}")
@@ -326,11 +363,308 @@ def desktopFolder():
             log(f"Process stdout: {result.stdout}")
     except Exception as e:
         log(f"An error occurred: {str(e)}")
-def run_custom_scripts():
-    from components.custom_scripts import *
+
+def custom_scripts_tweaks():
+    log('Preparing to run miscellaneous scripts')
+    log('Running registry modifications')
+    registry_mods()
+
+def registry_mods():
+    try:
+        log("Applying registry modifications...")
+        
+        # Define all registry modifications
+        registry_changes = [
+            # Show Quick Access
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer", "HubMode", winreg.REG_SZ, "-"),
+            
+            # Remove all folders in This PC
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A0953C92-50DC-43bf-BE83-3742FED03C9C}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{A8CDFF1C-4878-43be-B5FD-F8091C1C60D0}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{374DE290-123F-4565-9164-39C4925E467B}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{1CF1260C-4DD0-4ebb-811F-33C572699FDE}", None, None, None),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3ADD1653-EB32-4cb0-BBD7-DFA0ABB5ACCA}", None, None, None),
+            
+            # Remove Terminals Context Menu
+            (winreg.HKEY_CLASSES_ROOT, r"Directory\Background\shell\OpenInTerminal", None, None, None),
+            (winreg.HKEY_CLASSES_ROOT, r"Directory\Background\shell\OpenInTerminalAdmin", None, None, None),
+            
+            # Show Lock Screen
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\Personalization", "NoLockScreen", winreg.REG_DWORD, 0),
+            
+            # Remove Run With Priority In Context Menu
+            (winreg.HKEY_CLASSES_ROOT, r"*\shell\runas", None, None, None),
+            
+            # Remove Security Tray from Startup
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "SecurityHealth", winreg.REG_BINARY, bytes([0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])),
+            
+            # Remove Take Ownership to Context Menu
+            (winreg.HKEY_CLASSES_ROOT, r"*\shell\runas", None, None, None),
+            (winreg.HKEY_CLASSES_ROOT, r"Directory\shell\runas", None, None, None),
+            
+            # Modern Volume Flyout
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarMn", winreg.REG_DWORD, 0),
+            
+            # Old Context Menu
+            (winreg.HKEY_CURRENT_USER, r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", None, None, None),
+            
+            # Remove Extract
+            (winreg.HKEY_CLASSES_ROOT, r"*\shell\extract", None, None, None),
+            (winreg.HKEY_CLASSES_ROOT, r"Directory\shell\extract", None, None, None),
+            
+            # Remove Idle Toggle in Desktop Context Menu
+            (winreg.HKEY_CLASSES_ROOT, r"DesktopBackground\Shell\IdleToggle", None, None, None),
+            
+            # Hide App and Browser Control
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer", "HideSCAHealth", winreg.REG_DWORD, 1),
+            
+            # Modern AltTab
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer", "AltTabSettings", winreg.REG_DWORD, 1),
+            
+            # Modern Battery Flyout
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarMn", winreg.REG_DWORD, 0),
+            
+            # Modern Date and Time Flyout
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarMn", winreg.REG_DWORD, 0),
+            
+            # Enable Automatic Folder Discovery
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "DisableThumbnailCache", winreg.REG_DWORD, 0),
+            
+            # Enable System Restore
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore", "DisableSR", winreg.REG_DWORD, 0),
+            
+            # Disable Windows Spotlight
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "RotatingLockScreenEnabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "RotatingLockScreenOverlayEnabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338387Enabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338388Enabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338389Enabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338393Enabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-353694Enabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-353696Enabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContentEnabled", winreg.REG_DWORD, 0),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SystemPaneSuggestionsEnabled", winreg.REG_DWORD, 0),
+            
+            # Disallow Edge Swipe
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\ImmersiveShell", "EdgeUIConfig", winreg.REG_DWORD, 0),
+            
+            # Enable App Icons on Thumbnails
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer", "TaskbarSmallIcons", winreg.REG_DWORD, 0),
+            
+            # Disable Shortcut Text
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer", "link", winreg.REG_BINARY, bytes([0x00, 0x00, 0x00, 0x00])),
+            
+            # Disable Store App Archiving
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Settings", "AllowArchiving", winreg.REG_DWORD, 0),
+            
+            # Disable Update Notifications
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update", "AUOptions", winreg.REG_DWORD, 1),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update", "NoAutoUpdate", winreg.REG_DWORD, 1),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update", "NoAutoRebootWithLoggedOnUsers", winreg.REG_DWORD, 1),
+            
+            # Disable Verbose Messages
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", "VerboseStatus", winreg.REG_DWORD, 0),
+            
+            # Disable FTH
+            (winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettingsOverride", winreg.REG_DWORD, 0),
+            
+            # Disable Give Access To Menu
+            (winreg.HKEY_CLASSES_ROOT, r"*\shell\Sharing", None, None, None),
+            (winreg.HKEY_CLASSES_ROOT, r"Directory\shell\Sharing", None, None, None),
+            
+            # Disable Network Navigation Pane
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "NavPaneShowAllFolders", winreg.REG_DWORD, 0),
+            
+            # Disable Removable Drives in Sidebar
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "NoDrives", winreg.REG_DWORD, 0x3FFFFFFF),
+            
+            # Default Windows
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Start_ShowClassicMode", winreg.REG_DWORD, 0),
+            
+            # Disable Automatic Updates
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update", "AUOptions", winreg.REG_DWORD, 1),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update", "NoAutoUpdate", winreg.REG_DWORD, 1),
+            
+            # Disable Delivery Optimization
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config", "DODownloadMode", winreg.REG_DWORD, 0)
+        ]
+        
+        # Apply all registry changes
+        for root_key, key_path, value_name, value_type, value in registry_changes:
+            try:
+                if value_name is None:  # Delete key
+                    try:
+                        winreg.DeleteKey(root_key, key_path)
+                        log(f"Deleted registry key: {key_path}")
+                    except WindowsError as e:
+                        if e.winerror != 2:  # Ignore "key not found" errors
+                            log(f"Error deleting registry key {key_path}: {str(e)}")
+                else:  # Set value
+                    with winreg.CreateKeyEx(root_key, key_path, 0, winreg.KEY_SET_VALUE) as key:
+                        winreg.SetValueEx(key, value_name, 0, value_type, value)
+                        log(f"Set registry value: {key_path}\\{value_name}")
+                        
+            except Exception as e:
+                log(f"Error applying registry change {key_path}: {str(e)}")
+        
+        log("Registry modifications completed")
+        cmd_tweaks()
+        
+    except Exception as e:
+        log(f"Error in registry_mods: {str(e)}")
+        cmd_tweaks()  # Continue with cmd_tweaks even if registry mods fail
+
+def cmd_tweaks():
+    try:
+        log("Applying CMD tweaks...")
+        
+        # Define all CMD commands to execute
+        cmd_commands = [
+            # Debloat Send To Context Menu
+            'reg delete "HKEY_CLASSES_ROOT\\*\\shellex\\ContextMenuHandlers\\SendTo" /f',
+            'reg delete "HKEY_CLASSES_ROOT\\Directory\\shellex\\ContextMenuHandlers\\SendTo" /f',
+            
+            # Disable FSO and Game Bar Support
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d 0 /f',
+            'reg add "HKEY_CURRENT_USER\\System\\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d 0 /f',
+            'reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PolicyManager\\default\\ApplicationManagement\\AllowGameDVR" /v "Value" /t REG_DWORD /d 0 /f',
+            
+            # Disable Hibernation
+            'powercfg /h off',
+            
+            # Disable Location
+            'reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location" /v "Value" /t REG_SZ /d "Deny" /f',
+            'reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Sensor\\Overrides\\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}" /v "SensorPermissionState" /t REG_DWORD /d 0 /f',
+            
+            # Disable Microsoft Copilot
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v "ShowCopilotButton" /t REG_DWORD /d 0 /f',
+            
+            # Disable Mobile Device Settings
+            'reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\bluetooth" /v "Value" /t REG_SZ /d "Deny" /f',
+            'reg add "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\bluetoothSync" /v "Value" /t REG_SZ /d "Deny" /f',
+            
+            # Disable Powersaving
+            'powercfg /change monitor-timeout-ac 0',
+            'powercfg /change monitor-timeout-dc 0',
+            'powercfg /change disk-timeout-ac 0',
+            'powercfg /change disk-timeout-dc 0',
+            'powercfg /change standby-timeout-ac 0',
+            'powercfg /change standby-timeout-dc 0',
+            'powercfg /change hibernate-timeout-ac 0',
+            'powercfg /change hibernate-timeout-dc 0',
+            
+            # Disable Printing
+            'net stop spooler',
+            'sc config spooler start= disabled',
+            'reg add "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\Spooler" /v "Start" /t REG_DWORD /d 4 /f',
+            
+            # Disable Recent Items
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v "Start_TrackDocs" /t REG_DWORD /d 0 /f',
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v "Start_TrackProgs" /t REG_DWORD /d 0 /f',
+            
+            # Disable Search Indexing
+            'net stop "Windows Search"',
+            'sc config "Windows Search" start= disabled',
+            
+            # Disable Sleep Study
+            'reg add "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\\7bc4a2f9-d8fc-4469-b07b-33eb785aaca0" /v "Attributes" /t REG_DWORD /d 2 /f',
+            
+            # Disable Web Search
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Search" /v "BingSearchEnabled" /t REG_DWORD /d 0 /f',
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Search" /v "CortanaConsent" /t REG_DWORD /d 0 /f',
+            
+            # Disable Widgets
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" /v "TaskbarDa" /t REG_DWORD /d 0 /f',
+            
+            # Enable Sleep
+            'powercfg /change monitor-timeout-ac 15',
+            'powercfg /change monitor-timeout-dc 10',
+            'powercfg /change disk-timeout-ac 0',
+            'powercfg /change disk-timeout-dc 0',
+            'powercfg /change standby-timeout-ac 30',
+            'powercfg /change standby-timeout-dc 15',
+            'powercfg /change hibernate-timeout-ac 0',
+            'powercfg /change hibernate-timeout-dc 0',
+            
+            # Reset Network to WinPrivacy
+            'netsh winsock reset',
+            'netsh int ip reset',
+            'ipconfig /flushdns',
+            'ipconfig /release',
+            'ipconfig /renew',
+            
+            # WinPrivacy Visual Effects
+            'reg add "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v "VisualFXSetting" /t REG_DWORD /d 2 /f',
+            'reg add "HKEY_CURRENT_USER\\Control Panel\\Desktop" /v "UserPreferencesMask" /t REG_BINARY /d 9032078010000000 /f'
+        ]
+        
+        # Execute all CMD commands
+        for cmd in cmd_commands:
+            try:
+                result = subprocess.run(["cmd.exe", "/C", cmd], 
+                                      check=True, 
+                                      capture_output=True, 
+                                      text=True)
+                log(f"Successfully executed CMD command: {cmd}")
+            except subprocess.CalledProcessError as e:
+                log(f"Error executing CMD command {cmd}: {str(e)}")
+            except Exception as e:
+                log(f"Unexpected error with CMD command {cmd}: {str(e)}")
+        
+        log("CMD tweaks completed")
+        ps1_tweaks()
+        
+    except Exception as e:
+        log(f"Error in cmd_tweaks: {str(e)}")
+        ps1_tweaks()  # Continue with ps1_tweaks even if cmd tweaks fail
+
+def ps1_tweaks():
+    try:
+        log("Applying PowerShell tweaks...")
+        
+        # Define all PowerShell commands to execute
+        ps1_commands = [
+            # Disable Power Saving
+            'Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\\7bc4a2f9-d8fc-4469-b07b-33eb785aaca0" -Name "Attributes" -Value 2',
+            'powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c',
+            
+            # Disable File Sharing
+            'Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False',
+            'Set-SmbServerConfiguration -EncryptData $true -Force',
+            'Set-SmbClientConfiguration -EncryptData $true -Force',
+            'Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force',
+            'Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force',
+            'Set-SmbServerConfiguration -EnableSMB3Protocol $true -Force'
+        ]
+        
+        # Execute all PowerShell commands
+        for cmd in ps1_commands:
+            try:
+                result = subprocess.run(["powershell.exe", "-Command", cmd], 
+                                      check=True, 
+                                      capture_output=True, 
+                                      text=True)
+                log(f"Successfully executed PowerShell command: {cmd}")
+            except subprocess.CalledProcessError as e:
+                log(f"Error executing PowerShell command {cmd}: {str(e)}")
+            except Exception as e:
+                log(f"Unexpected error with PowerShell command {cmd}: {str(e)}")
+        
+        log("PowerShell tweaks completed")
+        finalize_installation()
+        
+    except Exception as e:
+        log(f"Error in ps1_tweaks: {str(e)}")
+        finalize_installation()  # Continue with finalization even if ps1 tweaks fail
 
 def finalize_installation():
-
     log("Installation complete. Please restart your system")
 """ Run the program """
 if __name__ == "__main__":
