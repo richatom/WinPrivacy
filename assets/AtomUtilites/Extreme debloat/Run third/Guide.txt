@@ -1,0 +1,1 @@
+Just run the exe file, and then import the config file

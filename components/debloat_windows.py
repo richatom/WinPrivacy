@@ -283,19 +283,19 @@ def waterfoxdownload():
     try:
         log("Installing Waterfox...")
         
-        # Defien waterfox installation script
-        ps1_command = ['''
+        # Define waterfox installation script
+        ps1_script = '''
 Write-Output "Starting Waterfox installation via winget..."
 
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     Write-Output "Winget is not available. Attempting to install..."
-
+    
     $ProgressPreference = 'SilentlyContinue'
     Write-Output "Installing WinGet PowerShell module from PSGallery..."
-
+    
     Install-PackageProvider -Name NuGet -Force | Out-Null
     Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery -AllowClobber | Out-Null
-
+    
     Write-Output "Using Repair-WinGetPackageManager cmdlet to bootstrap WinGet..."
     Repair-WinGetPackageManager
     Write-Output "WinGet installation complete."
@@ -311,27 +311,34 @@ winget install --id Waterfox.Waterfox --source winget --accept-package-agreement
 
 Write-Output "Waterfox installation completed."
 '''
-        ]
         
         # Execute waterfox installation script
-        for cmd in ps1_command:
-            try:
-                result = subprocess.run(["powershell.exe", "-Command", cmd], 
-                                      check=True, 
-                                      capture_output=True, 
-                                      text=True)
-                log(f"Successfully executed waterfox installation: {cmd}")
-            except subprocess.CalledProcessError as e:
-                log(f"Error executing waterfox installation: {cmd}: {str(e)}")
-            except Exception as e:
-                log(f"Unexpected error with waterfox installation: {cmd}: {str(e)}")
+        try:
+            result = subprocess.run(
+                ["powershell.exe", "-Command", ps1_script],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode == 0:
+                log("Waterfox installation completed successfully")
+                log(f"Process output: {result.stdout}")
+            else:
+                log(f"Waterfox installation failed with return code: {result.returncode}")
+                log(f"Process error: {result.stderr}")
+                
+        except subprocess.CalledProcessError as e:
+            log(f"Error running Waterfox installation: {str(e)}")
+        except Exception as e:
+            log(f"Unexpected error during Waterfox installation: {str(e)}")
         
-        log("Waterfox installation completed")
+        log("Proceeding with desktop folder setup")
         desktopFolder()
         
     except Exception as e:
-        log(f"Error in waterfox installation: {str(e)}")
-        desktopFolder()  # Continue with desktop folder even if waterfox installation fails
+        log(f"Error in waterfoxdownload: {str(e)}")
+        desktopFolder()  # Continue with desktop folder setup even if Waterfox installation fails
 
 def desktopFolder():
     script_url='https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/desktopUtilites.ps1'

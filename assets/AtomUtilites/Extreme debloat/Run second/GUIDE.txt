@@ -1,4 +1,5 @@
 Run powershell as admin
+copy paste this command: Set-ExecutionPolicy RemoteSigned and then press "A"
 Copy the file location of "debloater"
-run "cd path/to/file"
+run cd "path/to/file" (with " included)
 copy paste this command and run it: .\Win11Debloat.ps1 -Silent -RemoveAppsCustom -RemoveCommApps -RemoveW11Outlook -RemoveDevApps -RemoveGamingApps -ForceRemoveEdge -DisableDVR -ClearStart -ClearStartAllUsers -DisableTelemetry -DisableSuggestions -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -DisableCopilot -DisableRecall -RevertContextMenu -DisableMouseAcceleration -ShowHiddenFolders -ShowKnownFileExt -HideDupliDrive -TaskbarAlignLeft -HideSearchTb -ShowSearchIconTb -ShowSearchLabelTb -ShowSearchBoxTb -HideTaskview -HideChat -DisableWidgets -DisableStartRecommended -HideHome -HideGallery -ExplorerToDownloads -HideOnedrive -Hide3dObjects -HideIncludeInLibrary -HideGiveAccessTo -HideShare
