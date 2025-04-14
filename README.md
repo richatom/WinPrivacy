@@ -6,4 +6,6 @@ Uses code from Raphires debloat tool, winutil by chris titus, privacy.sexy, atla
 
 # TODO
 [ ] - Update the WinPrivacy folder
+
 [ ] - Try and get waterfox installation to work
+
