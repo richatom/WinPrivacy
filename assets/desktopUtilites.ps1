@@ -1,6 +1,6 @@
 $desktopPath = [Environment]::GetFolderPath('Desktop')
-$atomFolderPath = Join-Path $desktopPath "Atom Utilites"
-$zipUrl = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/AtomUtilites.zip"
+$atomFolderPath = Join-Path $desktopPath "Win Privacy"
+$zipUrl = "https://raw.githubusercontent.com/richatom/WinPrivacy/refs/heads/main/assets/WinPrivacy.zip"
 $zipPath = Join-Path $env:TEMP "AtomUtilites.zip"
 $tempExtractPath = Join-Path $env:TEMP "AtomUtilites_Extracted"
 
